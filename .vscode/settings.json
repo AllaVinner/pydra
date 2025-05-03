@@ -1,4 +1,9 @@
 {
+    "python.testing.pytestArgs": [
+        "pydra_tests"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true,
     "[python]": {
         "editor.codeActionsOnSave": {
             "source.organizeImports.ruff": "explicit"
