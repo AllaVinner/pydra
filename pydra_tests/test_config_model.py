@@ -1,15 +1,14 @@
 import pytest
 from pydantic import BaseModel, ValidationError
 
-from pydra.config_model import ConfigModel
+from pydra.config_model import create_config_model
 
 
 def test_basic_config_model():
     class A(BaseModel):
         x: int
 
-    config = ConfigModel(model=A)
-    config_model = config.config_model
+    config_model = create_config_model(model=A)
 
     dct = {"model": {"x": 12}}
     assert config_model.model_validate(dct)
@@ -28,8 +27,7 @@ def test_basic_config_model_exceptions():
     class A(BaseModel):
         x: int
 
-    config = ConfigModel(model=A)
-    config_model = config.config_model
+    config_model = create_config_model(model=A)
 
     dct = {}
     with pytest.raises(ValidationError):
@@ -40,7 +38,6 @@ def test_basic_config_model_exceptions():
     dct = {"model": {"x": "asd"}}
     with pytest.raises(ValidationError):
         config_model.model_validate(dct)
-    # TODO: Fix why this isn't complaining ...
     dct = {"model": {"x": 123}, "components": {"A": {"a": "asdf"}}}
     with pytest.raises(ValidationError):
         config_model.model_validate(dct)
@@ -56,8 +53,7 @@ def test_nested_config_model():
     class A(BaseModel):
         b: B
 
-    config = ConfigModel(model=A)
-    config_model = config.config_model
+    config_model = create_config_model(model=A)
 
     dct = {
         "components": {
