@@ -1,7 +1,7 @@
 import pytest
 from pydantic import BaseModel, ValidationError
 
-from pydra.config_model import create_config_model
+from pydra.config_model import create_config_model, expand_refs
 
 
 def test_basic_config_model():
@@ -73,3 +73,28 @@ def test_nested_config_model():
     del dct["components"]["A"]["with-ref"]["b"]["$ref"]
     with pytest.raises(ValidationError):
         config_model.model_validate(dct)
+
+
+def test_expand_refs():
+    d = {"a": {"b": 1}, "b": {"$ref": "#/a/b"}}
+    expected_unpacked = {"a": {"b": 1}, "b": 1}
+    actual_unpacked = expand_refs(d)
+    assert actual_unpacked == expected_unpacked
+
+    d = {"aa": {"a": {"b": 1}}, "bb": {"b": {"$ref": "#/aa/a/b"}}}
+    expected_unpacked = {"aa": {"a": {"b": 1}}, "bb": {"b": 1}}
+    actual_unpacked = expand_refs(d)
+    assert actual_unpacked == expected_unpacked
+
+    d = {
+        "a": {"b": {"c": {"d": {"$ref": "#/q/w"}}}},
+        "x": {"y": {"$ref": "#/a/b"}},
+        "q": {"w": {"s": {"p": 999}}},
+    }
+    expected_unpacked = {
+        "a": {"b": {"c": {"d": {"s": {"p": 999}}}}},
+        "x": {"y": {"c": {"d": {"s": {"p": 999}}}}},
+        "q": {"w": {"s": {"p": 999}}},
+    }
+    actual_unpacked = expand_refs(d)
+    assert actual_unpacked == expected_unpacked
